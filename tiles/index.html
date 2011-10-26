@@ -1,0 +1,132 @@
+<html>
+<head>
+ <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+ <title>Safecast Interpolation Map</title>
+ <script type="text/javascript" src="jquery-1.6.4.js"></script> 
+ <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+
+ <script type="text/javascript">
+  var map;
+  var myOptions;
+  var geocoder;
+
+  var overlayMaps = [{
+      getTileUrl: function (ll, z) {
+          var X = ll.x % (1 << z);
+          return "http://tile.openstreetmap.org/" + z + "/" + X + "/" + ll.y + ".png";
+      },
+      tileSize: new google.maps.Size(256, 256),
+      isPng: true,
+      maxZoom: 18,
+      name: "Mapnik",
+      alt: "Open Streetmap Mapnik"
+  }, {
+      getTileUrl: function (ll, z) {
+          return "http://localhost:8888/renderer/interpolate.py?x="+ll.x+"&y="+ll.y+"&zoom="+z+"&size=1";
+      },
+      tileSize: new google.maps.Size(256, 256),
+      isPng: true,
+      opacity: 0.7,
+      maxZoom: 18,
+      name: "Safecast",
+      alt: "Open Safecast interpolations"
+  }];
+
+  function initialize() {
+      var myLatlng = new google.maps.LatLng(35.671332, 139.752122); // Tokyo
+      //var myLatlng = new google.maps.LatLng(37.425252, 141.033247); // Daiichi
+      myOptions = {
+          zoom: 12,
+          maxZoom: 13,
+          center: myLatlng,
+          scrollwheel: true,
+          scaleControl: false,
+          disableDoubleClickZoom: true,
+          navigationControl: true,
+          navigationControlOptions: {
+              style: google.maps.NavigationControlStyle.DEFAULT
+          },
+          mapTypeControlOptions: {
+              style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+          },
+          mapTypeId: google.maps.MapTypeId.TERRAIN
+      };
+
+      map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+
+      $('#map-layers .layer').click(function () {
+          var layerID = parseInt($(this).attr('id'));
+          if ($(this).attr('checked')) {
+              var overlayMap = new google.maps.ImageMapType(overlayMaps[layerID]);
+              map.overlayMapTypes.setAt(layerID, overlayMap);
+          } else { /* The checkbox was unchecked, remove the layer */
+              if (map.overlayMapTypes.getLength() > 0) {
+                  map.overlayMapTypes.setAt(layerID, null);
+              }
+          }
+      }).removeAttr('checked');
+      geocoder = new google.maps.Geocoder();
+
+      for (i = 0; i < overlayMaps.length; i++) {
+          map.overlayMapTypes.push(null);
+      }
+  }
+
+  function detectBrowser() {
+      var useragent = navigator.userAgent;
+      var mapdiv = document.getElementById("map_canvas");
+
+      if (useragent.indexOf('iPhone') != -1 || useragent.indexOf('Android') != -1) {
+          mapdiv.style.width = '100%';
+          mapdiv.style.height = '100%';
+          myOptions = {
+              navigationControlOptions: {
+                  style: google.maps.NavigationControlStyle.ANDROID
+              }
+          };
+          map.setOptions(myOptions);
+      } else {
+          mapdiv.style.width = window.innerWidth - 160;
+          mapdiv.style.height = window.innerHeight - 50;
+          //mapdiv.style.width = '800px';
+          //mapdiv.style.height = '525px';
+      }
+  }
+
+  function codeAddress() {
+      var address = document.getElementById("address").value;
+      geocoder.geocode({
+          'address': address
+      }, function (results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+              map.setCenter(results[0].geometry.location);
+              var marker = new google.maps.Marker({
+                  map: map,
+                  position: results[0].geometry.location
+              });
+          } else {
+              alert("Geocode was not successful for the following reason: " + status);
+          }
+      });
+  }
+  </script>
+</head>
+<body style="margin:0px; padding:0px;" onload="initialize(); detectBrowser();">
+  <table>
+    <tb><td>
+      <div id="map_canvas"> </div>
+	<div id="map-layers"> 
+          <input id="address" type="textbox" value="Fukushima, Japan">
+          <input type="button" value="Encode" onclick="codeAddress()">
+          <input type="checkbox" id="0" class="layer" /><label for="0">&nbsp;OpenStreetMap</label>
+	  <input type="checkbox" id="1" class="layer" /><label for="1">&nbsp;Safecast</label>
+	</div> 
+    </td><td> 
+      <img src="scalebub.png"> 
+    </td><td>
+      <img src="scalebubSv.png"> 
+    </td></tb>
+ </table>
+</body>
+</html>

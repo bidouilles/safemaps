@@ -1,0 +1,105 @@
+== Welcome to Safecast interpolation tools
+
+== Application details
+
+Create static prefectures or cities map with Safecast interpolated radiation measurements.
+
+== Requirements
+
+* python 2.6
+
+* matplotlib, basemap
+
+* scipy, numpy
+
+* Shapely
+
+* psyco (for faster processing)
+
+== Install Project
+
+=== Matplotlib and basemap
+* http://matplotlib.github.com/
+* http://matplotlib.github.com/basemap/
+
+=== scipy and numpy
+* http://www.scipy.org/
+* http://numpy.scipy.org/
+
+=== Shapely
+* https://github.com/sgillies/shapely
+
+=== Shapefile maps
+Administrative boundaries and placenames of Japan:
+* http://cegrp.cga.harvard.edu/japan/?q=category/tags/vector-gis
+The shapefiles need to be uncompressed in the data/ folder
+
+== Usage
+
+=== Preprocessing
+Precompute the griddata interpolation
+
+Usage:
+  > python safecastPrecompute.py --help
+  Usage: safecastPrecompute [options] <safecast-csv-file>
+
+  Options:
+    -h, --help            show this help message and exit
+    -c CLIP, --clip=CLIP  specify the clipping value in CPM
+    -g GRIDSIZE, --gridsize=GRIDSIZE
+                          specify the grid size for interpolation
+
+Sample usage:
+  > python safecastPrecompute.py F_100m.csv -g 2500
+  129416 measurements loaded.
+  Compute area with missing data
+  Create the grid
+  Calculate the griddata (2500 x 2500)
+  done in 60.41 seconds.
+  Griddata saved (safecast.pickle).
+
+=== Rendering maps
+Usage:
+  > python safecastGridMaps.py --help 
+  Usage: safecastGridMaps [options] <safecast-pickle>
+
+  Options:
+    -h, --help       show this help message and exit
+    -c, --cities     render the cities maps (default is prefectures)
+    -s, --sieverts   render the maps using uSv/h data (default in CPM)
+    -u, --uncovered  add uncovered yellow area to the map (default is none)
+
+Sample usage:
+  > python safecastGridMaps.py -s safecast.pickle
+  Pickle file loaded (129416 points)
+  Rendering using uSv/h as unit
+  Load locations
+  Processing shapes ...
+  Generating map for Fukushima - All (53508 points) [37.973683,139.168044 - 36.792610,141.046189]
+  ...
+The rendered maps are saved in SafecastMap/ folder
+
+=== Rendering tiles
+For trial you can use the small server that will render and cache the tiles on the fly
+  > cd safemaps/tiles
+  > python server.py
+  The server is ready and can be accessed it at http://localhost:8888/index.html
+
+Then the rendering of all tiles can be done using the prebuildtiles command
+
+  safemaps/tiles/renderer> python prebuildtiles.py
+  Zoom level 4
+  Building tile ./interpolate.py 14 5 4 1
+  Building tile ./interpolate.py 14 6 4 1
+  Zoom level 5
+  Building tile ./interpolate.py 28 11 5 1
+  Building tile ./interpolate.py 28 12 5 1
+  Zoom level 6
+  Building tile ./interpolate.py 56 23 6 2
+  Building tile ./interpolate.py 56 24 6 2
+  Building tile ./interpolate.py 56 25 6 2
+  ...
+
+== License
+The Safecast interpolation tools are released under the CC0 license. See CC0.txt for details.
+
