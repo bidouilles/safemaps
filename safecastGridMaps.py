@@ -192,8 +192,8 @@ def main(pickleName, renderCities, sieverts, uncovered):
 
         if npts>0:
           title = 'Safecast %s - Griddata (%s points) - %s [%s]\n(min, median, max) = (%d, %d, %d) CPM' % (safecastDatasetName, npts, name, folder, minCPM, medianCPM, maxCPM)
-          DrawMap(title, 2, vx, vy, min(vx), max(vx), min(vy), max(vy), npts, x, y, z, xil, yil, grid, name, folder, cities, missing, uncovered, lakes)
-          #pool.apply_async(DrawMap, (title, 2, vx, vy, min(vx), max(vx), min(vy), max(vy), npts, x, y, z, xil, yil, grid, name, folder, cities, missing, uncovered, lakes))
+          #DrawMap(title, 2, vx, vy, min(vx), max(vx), min(vy), max(vy), npts, x, y, z, xil, yil, grid, name, folder, cities, missing, uncovered, lakes)
+          pool.apply_async(DrawMap, (title, 2, vx, vy, min(vx), max(vx), min(vy), max(vy), npts, x, y, z, xil, yil, grid, name, folder, cities, missing, uncovered, lakes))
         else:
            print "Skipping %s" % name
 
@@ -333,10 +333,11 @@ def DrawMap(title, landwidth, vx, vy, lon_min, lon_max, lat_min, lat_max, npts, 
         assert patch.geom_type in ['Polygon']
         assert patch.is_valid
 
-        # Fill and outline each patch
-        x, y = patch.exterior.xy
-        x, y = m(x, y)
-        plt.fill(x, y, color='#FFFF00', aa=True, alpha=1.0, hatch="x") 
+        if patch.area > 0.0016: # more than (0.04 degree x 0.04 degree) ~ (1km x 1km) area
+          # Fill and outline each patch
+          x, y = patch.exterior.xy
+          x, y = m(x, y)
+          plt.fill(x, y, color='#FFFF00', aa=True, alpha=1.0, hatch="x") 
 
     # Clip the water bodies area (white hatch)
     for patch in lakes.geoms:
