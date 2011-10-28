@@ -103,7 +103,7 @@ def DrawTile(precision, lon_min, lon_width, lat_min, lat_height, gx, gy, gzoom, 
       m.scatter(lon,lat,s=2, c=z, cmap=cmap, norm=normCPM, linewidths=0.2, alpha=1.0)
 
     # Clip outside coastlines area and water bodies
-    if len(coastline) > 0 and len(waterbodies) > 0::
+    if len(coastline) > 0 and len(waterbodies) > 0:
       polygonsToClip = []
       for patch in coastline.geoms:
         if not patch.is_empty and patch.is_valid:
