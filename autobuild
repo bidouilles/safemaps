@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Check for proper number of command line args.
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` {fusion-table-id}"
+  exit $E_BADARGS
+fi
+
+fusiontable=$1
+
+# Download the safecast dataset
+wget "http://www.google.com/fusiontables/exporttable?query=select+*+from+${fusiontable}" -O safecast_100m.csv
+
+# Precompute the griddata
+python safecastPrecompute.py safecast_100m.csv -g 2500
+
+# Setup the precomputed data
+cp safecast.pickle tiles/renderer/.
+cp data/coastline.pickle tiles/renderer/.
+cp data/waterbodies.pickle tiles/renderer/.
+
+cd tiles/renderer/
+rm -rf cached tiles uncovered
+
+# Start rendering tiles
+python prebuildtiles.py
+mv cached tiles
+cd tiles
+find . -size -855c -name *.png | xargs rm
+cd ..
+tar cvfz tiles.tgz tiles/
+
+# Start rendering uncovered areas
+python prebuildtiles.py -u
+mv cached uncovered
+cd uncovered
+find . -size -855c -name *.png | xargs rm
+cd ..
+tar cvfz uncovered.tgz uncovered/

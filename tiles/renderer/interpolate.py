@@ -194,11 +194,11 @@ if __name__ == "__main__":
      gzoom = int(form.getvalue('zoom'))
      gsize = int(form.getvalue('size'))
   else:
-     parser = OptionParser("Usage: interpolate <x> <y> <zoom> <size>")
+     parser = OptionParser("Usage: interpolate <x> <y> <zoom> <size> <uncovered>")
 
      (options, args) = parser.parse_args()
     
-     if len(args) != 4:
+     if len(args) != 5:
         parser.error("Wrong number of arguments")
 
      # Get data from command line arguments
@@ -206,6 +206,7 @@ if __name__ == "__main__":
      gy = int(args[1])
      gzoom = int(args[2])
      gsize = int(args[3])
+     uncovered = int(args[4])
 
   # Create the cached filename
   tilename = "safecast_griddata_%s_%s_%s.png" %(gx, gy, gzoom)

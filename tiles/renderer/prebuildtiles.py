@@ -13,6 +13,7 @@ import cgi, cgitb
 # http://localhost:8888/renderer/interpolate.py?x=7275&y=3226&zoom=13
 
 import cPickle
+from optparse import OptionParser
 import os
 import sys
 import time
@@ -55,6 +56,13 @@ def buildTile(command):
 # Pool debugging
 
 if __name__ == "__main__":
+ parser = OptionParser("Usage: safecastPrecompute [options] <safecast-csv-file>")
+ parser.add_option("-u", "--uncovered",
+                      action="store_true", dest="uncovered", default=False,
+                      help="generate uncovered yellow area to the map (default is none)")
+
+ (options, args) = parser.parse_args()
+
  projection = GoogleProjection()
 
  for gzoom in range(4, 14):
@@ -90,7 +98,7 @@ if __name__ == "__main__":
        pool.apply_async(download, (url, "/dev/null"))
      else:
        # Create the cached filename
-       cmd = "./interpolate.py %s %s %s %s" % (gx, gy, gzoom, gridSize)
+       cmd = "./interpolate.py %s %s %s %s %d" % (gx, gy, gzoom, gridSize, options.uncovered)
 
        # Draw the new tiles
        #buildTile(cmd)
