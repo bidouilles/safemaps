@@ -17,6 +17,7 @@ from matplotlib.mlab import griddata
 from shapely.geometry import Point
 from shapely.ops import cascaded_union
 import safecastCommon
+import csv
 
 try:
    import psyco
@@ -70,9 +71,10 @@ def PreCompute(safecastDataset, safecastDatasetCPMThreashold, safecastGridsize):
 # -----------------------------------------------------------------------------
 def LoadSafecastData(filename, CPMclip, latmin, latmax, lonmin, lonmax):
     # Load data
-    f = open(filename, "r")
-    content = f.readlines()
-    f.close()
+    data = csv.reader(open(filename))
+
+    # Read the column names from the first line of the file
+    fields = data.next()
 
     x = []
     y = []
@@ -80,20 +82,26 @@ def LoadSafecastData(filename, CPMclip, latmin, latmax, lonmin, lonmax):
     zraw = []
     
     # Process data
-    for data in content[1:]:
-      points,lat_min,lat_max,lon_min,lon_max,lat_avg,lon_avg,lat_lon,cpm_min,cpm_max,cpm_avg,cpm_stddev,timestamp_min,timestamp_max,DRE = data.split(",")
-      
+    for row in data:
+      # Zip together the field names and values
+      items = zip(fields, row)
+
+      # Add the value to our dictionary
+      item = {}
+      for (name, value) in items:
+         item[name] = value.strip()
+
       # Ignore if outside limits
-      if not ((float(lat_avg)>latmin) and (float(lat_avg)<latmax) and (float(lon_avg)>lonmin) and (float(lon_avg)<lonmax)):
+      if not ((float(item["lat_avg"])>latmin) and (float(item["lat_avg"])<latmax) and (float(item["lon_avg"])>lonmin) and (float(item["lon_avg"])<lonmax)):
         continue
 
-      cpm = float(cpm_avg)
+      cpm = float(item["cpm_avg"])
       zraw.append(cpm)
       
       if (cpm>CPMclip): cpm=CPMclip # clip
 
-      x.append(float(lon_avg))
-      y.append(float(lat_avg))
+      x.append(float(item["lon_avg"]))
+      y.append(float(item["lat_avg"]))
       z.append(float(cpm))
 
     npts = len(x)
